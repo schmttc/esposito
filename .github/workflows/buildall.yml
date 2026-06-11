@@ -71,6 +71,9 @@ jobs:
           rm -rf apps
           mv build/package/apps apps
 
+          mkdir -p fonts/fpack
+          cp fonts/*.fpack fonts/fpack/
+
       - name: Upload artifacts
         uses: actions/upload-artifact@v6
         with:
@@ -78,7 +81,7 @@ jobs:
           path: |
             system/firmware.bin
             apps/**
-            fonts/*.fpack
+            fonts/fpack/*.fpack
             build/bootloader/bootloader.bin
             build/partition_table/partition-table.bin
             build/esposito.bin
