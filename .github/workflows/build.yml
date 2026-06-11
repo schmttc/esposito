@@ -21,7 +21,15 @@ jobs:
           target: esp32
           path: .
 
+      - name: Fix permissions after ESP-IDF build
+        run: |
+          sudo chown -R $USER:$USER build || true
+          chmod -R u+rwX build || true
 
+      - name: Prepare artifact layout
+        run: |
+          mkdir -p system
+          cp build/esposito.bin system/firmware.bin
 
       - name: Build All Apps
         run: |
@@ -35,12 +43,6 @@ jobs:
                   scripts/build_app.sh "${app_dir}app.c" build/apps
               fi
           done
-
-      - name: Prepare artifact layout
-        run: |
-          mkdir -p system
-          cp build/esposito.bin system/firmware.bin
-
 
       - name: Package apps for artifact
         run: |
