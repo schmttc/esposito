@@ -38,6 +38,22 @@ fi
 APP_NAME="$(basename "$APP_DIR")"
 OUTPUT_DIR="${2:-build/apps}"
 
+# Auto-load app dependencies from APP_DIR/deps
+DEPS_FILE="${APP_DIR}/deps"
+if [ -f "$DEPS_FILE" ]; then
+    while IFS= read -r dep || [ -n "$dep" ]; do
+        # Trim leading/trailing whitespace
+        dep="${dep#"${dep%%[![:space:]]*}"}"
+        dep="${dep%"${dep##*[![:space:]]}"}"
+
+        # Skip empty lines and comments
+        [ -z "$dep" ] && continue
+        [[ "$dep" == \#* ]] && continue
+
+        LIBS+=("$dep")
+    done < "$DEPS_FILE"
+fi
+
 # Add performance optimizations for gameboy
 if [[ "$APP_NAME" == "gameboy" ]]; then
     EXTRA_CFLAGS="-fjump-tables -ftree-switch-conversion -fno-strict-aliasing"
@@ -123,6 +139,9 @@ while IFS= read -r -d '' f; do
     APP_SOURCES+=("$f")
     HAS_CPP=true
 done < <(find "$APP_DIR" -maxdepth 1 -name '*.cpp' -print0)
+
+
+
 
 # Collect library sources and include paths
 LIB_SOURCES=()
