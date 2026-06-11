@@ -164,6 +164,32 @@ idf.py -p /dev/ttyUSB0 monitor
 
 Press `Ctrl+]` to exit the monitor.
 
+## Windows + Github Quick Start
+1. Open Powershell
+2. Install Python
+
+	`winget install Python.Python.3.12`
+3. Install esptool
+
+    `python -m pip install esptool`
+4. Find COM port
+	- Start Menu> Device Manager → Ports (COM & LPT)
+	- Look for: USB-SERIAL CH340 (COM4)
+5. Download the archive from Github Actions
+    - Extract the zip file
+    - In Powershell, cd to the root directory
+6. Flash firmware
+    ```
+    python -m esptool --chip esp32 --port COM4 --baud 460800 `
+        --before default_reset --after hard_reset `
+        write_flash --flash-mode dio --flash-size 4MB --flash-freq 40m `
+        0x1000 build/bootloader/bootloader.bin `
+        0x8000 build/partition_table/partition-table.bin `
+        0x10000 build/esposito.bin `
+        0x210000 build/ota_data_initial.bin `
+        0x3a0000 build/esposito_stub.bin
+    ```
+
 ## Troubleshooting
 
 ### No apps appear on the launcher
