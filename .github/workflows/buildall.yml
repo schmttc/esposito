@@ -19,8 +19,8 @@ jobs:
       - name: Build main firmware + update stub
         run: |
           . /opt/esp/idf/export.sh
+          make -C stub build
           idf.py build
-          $(MAKE) -C stub build
 
       - name: Install app dependencies
         run: |
