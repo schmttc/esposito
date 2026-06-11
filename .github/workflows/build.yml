@@ -22,10 +22,10 @@ jobs:
           . /opt/esp/idf/export.sh
           idf.py build
 
-      - name: Prepare artifact layout
+      - name: Install App dependencies
         run: |
-          mkdir -p system
-          cp build/esposito.bin system/firmware.bin
+          apt-get update
+          apt-get install -y vim-common
 
       - name: Build All Apps
         run: |
