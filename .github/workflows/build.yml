@@ -2,7 +2,6 @@ name: Build
 
 on:
   push:
-  workflow_dispatch:
 
 jobs:
   build:
@@ -22,7 +21,7 @@ jobs:
           . /opt/esp/idf/export.sh
           idf.py build
 
-      - name: Install App dependencies
+      - name: Install App Dependencies
         run: |
           apt-get update
           apt-get install -y vim-common
@@ -30,6 +29,8 @@ jobs:
       - name: Build All Apps
         run: |
           set -e
+          source /opt/esp/idf/export.sh
+
           mkdir -p build/apps
 
           # Generate OS symbol table
