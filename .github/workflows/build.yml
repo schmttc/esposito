@@ -17,13 +17,15 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Ensure scripts executable
-        run: |
-          chmod +x scripts/*.sh || true
-
       - name: Build firmware
         run: |
+          . /opt/esp/idf/export.sh
           idf.py build
+
+      - name: Prepare artifact layout
+        run: |
+          mkdir -p system
+          cp build/esposito.bin system/firmware.bin
 
       - name: Build All Apps
         run: |
