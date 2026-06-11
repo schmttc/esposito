@@ -1,12 +1,14 @@
 name: Build
 
 on:
-  push:
   workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
+
+    container:
+      image: espressif/idf:v6.0.1
 
     steps:
       - name: Checkout repo
@@ -14,31 +16,24 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Build with ESP-IDF
-        uses: espressif/esp-idf-ci-action@v1
-        with:
-          esp_idf_version: v6.0.1
-          target: esp32
-          path: .
-
-      - name: Fix permissions after ESP-IDF build
+      - name: Ensure scripts executable
         run: |
-          sudo chown -R $USER:$USER build || true
-          chmod -R u+rwX build || true
+          chmod +x scripts/*.sh || true
 
-      - name: Prepare artifact layout
+      - name: Build firmware
         run: |
-          mkdir -p system
-          cp build/esposito.bin system/firmware.bin
+          idf.py build
 
       - name: Build All Apps
         run: |
+          set -e
+          mkdir -p build/apps
+
           # Generate OS symbol table
           scripts/gen_symtab.sh build/esposito.elf build/os_symbols.ld
 
           # Build each app
           for app_dir in apps/*/; do
-              app_name=$(basename "$app_dir")
               if [ -f "${app_dir}app.c" ]; then
                   scripts/build_app.sh "${app_dir}app.c" build/apps
               fi
@@ -47,26 +42,24 @@ jobs:
       - name: Package apps for artifact
         run: |
           set -e
-
-          PACKAGE_DIR=build/package
-          mkdir -p "$PACKAGE_DIR/apps"
-
+          mkdir -p build/package/apps
           shopt -s nullglob
 
           for app_elf in build/apps/*.elf; do
               app_name=$(basename "$app_elf" .elf)
+              mkdir -p "build/package/apps/${app_name}"
+              cp "$app_elf" "build/package/apps/${app_name}/program.elf"
 
-              mkdir -p "$PACKAGE_DIR/apps/${app_name}"
-
-              # Copy ELF as standard name
-              cp "$app_elf" "$PACKAGE_DIR/apps/${app_name}/program.elf"
-
-              # Copy manifest if exists
               manifest="apps/${app_name}/manifest.cfg"
               if [ -f "$manifest" ]; then
-                  cp "$manifest" "$PACKAGE_DIR/apps/${app_name}/manifest.cfg"
+                  cp "$manifest" "build/package/apps/${app_name}/manifest.cfg"
               fi
           done
+
+      - name: Prepare artifact layout
+        run: |
+          mkdir -p system
+          cp build/esposito.bin system/firmware.bin
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
