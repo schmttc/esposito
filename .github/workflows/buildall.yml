@@ -48,12 +48,7 @@ jobs:
           set -e
 
           mkdir -p system
-          mkdir -p build
           cp build/esposito.bin system/firmware.bin
-          cp stub/build/esposito_stub.bin build/esposito_stub.bin
-          cp build/bootloader/bootloader.bin build/bootloader.bin
-          cp build/partition_table/partition-table.bin build/partition-table.bin
-          cp stub/build/esposito_stub.bin build/esposito_stub.bin
 
           mkdir -p build/package/apps
 
@@ -76,6 +71,8 @@ jobs:
             system/firmware.bin
             build/package/apps/**
             fonts/*.fpack
-            build/*.bin
-            
+            build/bootloader/bootloader.bin
+		        build/partition_table/partition-table.bin
+		        build/esposito.bin
+		        build/ota_data_initial.bin
 
