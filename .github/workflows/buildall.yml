@@ -16,10 +16,11 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Build firmware
+      - name: Build main firmware + update stub
         run: |
           . /opt/esp/idf/export.sh
           idf.py build
+          $(MAKE) -C stub build
 
       - name: Install app dependencies
         run: |
@@ -49,6 +50,7 @@ jobs:
 
           mkdir -p system
           cp build/esposito.bin system/firmware.bin
+          cp stub/build/esposito_stub.bin build/esposito_stub.bin
 
           mkdir -p build/package/apps
 
@@ -72,7 +74,7 @@ jobs:
             build/package/apps/**
             fonts/*.fpack
             build/bootloader/bootloader.bin
-		        build/partition_table/partition-table.bin
-		        build/esposito.bin
-		        build/ota_data_initial.bin
+            build/partition_table/partition-table.bin
+            build/esposito.bin
+            build/ota_data_initial.bin
 
