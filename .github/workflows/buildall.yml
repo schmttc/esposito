@@ -83,4 +83,5 @@ jobs:
             build/partition_table/partition-table.bin
             build/esposito.bin
             build/ota_data_initial.bin
+            build/esposito_stub.bin
 
