@@ -19,7 +19,6 @@ jobs:
       - name: Build main firmware + update stub
         run: |
           . /opt/esp/idf/export.sh
-          idf.py -C stub build
           idf.py build
 
       - name: Install app dependencies
@@ -50,7 +49,6 @@ jobs:
 
           mkdir -p system
           cp -v build/esposito.bin system/firmware.bin
-          cp -v stub/build/esposito_stub.bin build/esposito_stub.bin
 
           mkdir -p build/package/apps
 
@@ -85,5 +83,3 @@ jobs:
             build/bootloader/bootloader.bin
             build/partition_table/partition-table.bin
             build/esposito.bin
-            build/ota_data_initial.bin
-            build/esposito_stub.bin
