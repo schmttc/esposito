@@ -1,0 +1,89 @@
+name: Build Firmware and Apps
+
+on:
+  push:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    container:
+      image: espressif/idf:v6.0.1
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v5
+        with:
+          submodules: recursive
+
+      - name: Build main firmware + update stub
+        run: |
+          . /opt/esp/idf/export.sh
+          idf.py -C stub build
+          idf.py build
+
+      - name: Install app dependencies
+        run: |
+          apt-get update
+          apt-get install -y vim-common
+
+      - name: Build all apps
+        run: |
+          set -e
+          . /opt/esp/idf/export.sh
+
+          mkdir -p build/apps
+
+          # Generate OS symbol table
+          scripts/gen_symtab.sh build/esposito.elf build/os_symbols.ld
+
+          # Build each app
+          for app_dir in apps/*/; do
+              if [ -f "${app_dir}app.c" ]; then
+                  scripts/build_app.sh "${app_dir}app.c" build/apps
+              fi
+          done
+
+      - name: Package for artifact
+        run: |
+          set -e
+
+          mkdir -p system
+          cp -v build/esposito.bin system/firmware.bin
+          cp -v stub/build/esposito_stub.bin build/esposito_stub.bin
+
+          mkdir -p build/package/apps
+
+          for app_elf in build/apps/*.elf; do
+              app_name=$(basename "$app_elf" .elf)
+
+              mkdir -p "build/package/apps/${app_name}"
+
+              cp "$app_elf" "build/package/apps/${app_name}/program.elf"
+
+              manifest="apps/${app_name}/manifest.cfg"
+
+              if [ -f "$manifest" ]; then
+                  cp "$manifest" "build/package/apps/${app_name}/manifest.cfg"
+              fi
+          done
+
+          rm -rf apps
+          mv build/package/apps apps
+
+          mkdir -p fonts/fpack
+          cp fonts/*.fpack fonts/fpack/
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v6
+        with:
+          name: firmware-and-apps
+          path: |
+            system/firmware.bin
+            apps/**
+            fonts/fpack/*.fpack
+            build/bootloader/bootloader.bin
+            build/partition_table/partition-table.bin
+            build/esposito.bin
+            build/ota_data_initial.bin
+            build/esposito_stub.bin
