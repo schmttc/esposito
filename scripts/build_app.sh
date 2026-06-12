@@ -74,9 +74,28 @@ fi
 # Get the project root directory (where we started)
 PROJECT_ROOT="$(pwd)"
 
+# Load app dependencies from APP_DIR/deps
+DEPS_FILE="${APP_DIR}/deps"
+if [ -f "$DEPS_FILE" ]; then
+    while IFS= read -r dep || [ -n "$dep" ]; do
+        # Trim leading/trailing whitespace
+        dep="${dep#"${dep%%[![:space:]]*}"}"
+        dep="${dep%"${dep##*[![:space:]]}"}"
+
+        # Skip empty lines and comments
+        [ -z "$dep" ] && continue
+        [[ "$dep" == \#* ]] && continue
+
+        LIBS+=("$dep")
+    done < "$DEPS_FILE"
+fi
+
 # Build include flags
 IDF_PATH="${IDF_PATH:-/opt/esp-idf}"
 INCLUDE_FLAGS="-I main -I . -I fonts -I boards/cyd_2usb -I build/config"
+for d in libs/*; do
+    [ -d "$d" ] && INCLUDE_FLAGS="$INCLUDE_FLAGS -I $d"
+done
 if [ -d "$IDF_PATH" ]; then
     INCLUDE_FLAGS="$INCLUDE_FLAGS -I $IDF_PATH/components/esp_common/include"
     INCLUDE_FLAGS="$INCLUDE_FLAGS -I $IDF_PATH/components/esp_system/include"
