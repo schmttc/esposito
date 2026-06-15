@@ -89,22 +89,21 @@ jobs:
             build/esposito.bin
             build/ota_data_initial.bin
             build/esposito_stub.bin
-      
-      - name: Create release bundle
+            
+      - name: Download artifact
+        if: github.event_name == 'release'
+        uses: actions/download-artifact@v4
+        with:
+          name: esposito-firmware-apps
+          path: downloaded
+
+      - name: Zip artifact
         if: github.event_name == 'release'
         run: |
           TAG="${{ github.event.release.tag_name }}"
-          tar -czf "esposito-firmware-apps-${TAG}.tar.gz" \
-            system \
-            apps \
-            fonts/fpack \
-            build/bootloader \
-            build/partition_table \
-            build/esposito.bin \
-            build/ota_data_initial.bin \
-            build/esposito_stub.bin
+          tar -czf "esposito-firmware-apps-${TAG}.tar.gz" -C downloaded .
 
-      - name: Attach bundle to GitHub Release
+      - name: Attach to release
         if: github.event_name == 'release'
         uses: softprops/action-gh-release@v1
         with:
